@@ -7,7 +7,7 @@
 <ul class="mt-4 space-y-2">
     @foreach ($tasks as $task)
         <li class="bg-white p-4 rounded shadow">
-            {{ $task->content }}
+            {{ $task->content }}（{{ $task->status }}）
             <a href="{{ route('tasks.show', $task->id) }}" class="text-blue-500 ml-4">詳細</a>
             <a href="{{ route('tasks.edit', $task->id) }}" class="text-green-500 ml-2">編集</a>
         </li>
