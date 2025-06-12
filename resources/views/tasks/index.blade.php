@@ -2,6 +2,7 @@
 
 @section('content')
 <h1 class="text-2xl font-bold mb-4">タスク一覧</h1>
+
 <a href="{{ route('tasks.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded">新規作成</a>
 
 <ul class="mt-4 space-y-2">

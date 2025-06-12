@@ -3,16 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Task;
 
 class TasksController extends Controller
 {
     public function index()
     {
-        $tasks = Task::all();
+        if (!Auth::check()) {
+            return view('dashboard', [
+                'tasks' => collect(), // Rỗng nếu chưa đăng nhập
+            ]);
+        }
+
+        $tasks = Auth::user()->tasks()->get();
+
         return view('tasks.index', [
-            'tasks' => $tasks,
-        ]);
+                'tasks' => $tasks,
+            ]);
     }
 
     public function create()
@@ -27,17 +35,24 @@ class TasksController extends Controller
             'status' => 'required|max:10',
         ]);
 
-        $task = new Task;
-        $task->content = $request->content;
-        $task->status = $request->status;
-        $task->save();
+        Auth::user()->tasks()->create([
+            'content' => $request->content,
+            'status' => $request->status,
+        ]);
 
-        return redirect('/');
+        $tasks = Auth::user()->tasks()->get();
+        return view('tasks.index', ['tasks' => $tasks]);
     }
 
     public function show($id)
     {
         $task = Task::findOrFail($id);
+
+        if ($task->user_id !== Auth::id()) {
+            $tasks = Auth::user()->tasks()->get();
+            return view('tasks.index', ['tasks' => $tasks]);
+        }
+
         return view('tasks.show', [
             'task' => $task,
         ]);
@@ -46,6 +61,12 @@ class TasksController extends Controller
     public function edit($id)
     {
         $task = Task::findOrFail($id);
+
+        if ($task->user_id !== Auth::id()) {
+            $tasks = Auth::user()->tasks()->get();
+            return view('tasks.index', ['tasks' => $tasks]);
+        }
+
         return view('tasks.edit', [
             'task' => $task,
         ]);
@@ -59,18 +80,33 @@ class TasksController extends Controller
         ]);
 
         $task = Task::findOrFail($id);
-        $task->content = $request->content;
-        $task->status = $request->status;
-        $task->save();
 
-        return redirect('/');
+        if ($task->user_id !== Auth::id()) {
+            $tasks = Auth::user()->tasks()->get();
+            return view('tasks.index', ['tasks' => $tasks]);
+        }
+
+        $task->update([
+            'content' => $request->content,
+            'status' => $request->status,
+        ]);
+
+        $tasks = Auth::user()->tasks()->get();
+        return view('tasks.index', ['tasks' => $tasks]);
     }
 
     public function destroy($id)
     {
         $task = Task::findOrFail($id);
+
+        if ($task->user_id !== Auth::id()) {
+            $tasks = Auth::user()->tasks()->get();
+            return view('tasks.index', ['tasks' => $tasks]);
+        }
+
         $task->delete();
 
-        return redirect('/');
+        $tasks = Auth::user()->tasks()->get();
+        return view('tasks.index', ['tasks' => $tasks]);
     }
 }
